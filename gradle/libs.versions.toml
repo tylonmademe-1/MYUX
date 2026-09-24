@@ -1,5 +1,5 @@
 [versions]
-agp = "9.4.0"
+agp = "9.1.1"
 commonsNet = "3.13.0"
 smbj = "0.14.0"
 kotlin = "2.3.20"
@@ -42,6 +42,7 @@ androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", vers
 androidx-documentfile = { group = "androidx.documentfile", name = "documentfile", version = "1.1.0" }
 seeker = "com.github.abdallahmehiz:seeker:2.0.1"
 mediainfo-lib = "com.github.marlboro-advance:mediainfoAndroid:v1.0.0-fix"
+mpv-android-lib = "io.github.abdallahmehiz:mpv-android-lib:0.1.12"
 
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin" }
 koin-core = { module = "io.insert-koin:koin-core" }

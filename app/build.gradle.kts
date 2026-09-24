@@ -1,4 +1,3 @@
-import com.android.build.api.variant.FilterConfiguration
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -12,7 +11,7 @@ plugins {
 
 android {
   namespace = "app.marlboroadvance.mpvex"
-  compileSdk = 37
+  compileSdk = 36
 
   defaultConfig {
     applicationId = "app.marlboroadvance.mpvex"
@@ -27,49 +26,22 @@ android {
 
     buildConfigField("String", "GIT_SHA", "\"${getCommitSha()}\"")
     buildConfigField("int", "GIT_COUNT", getCommitCount())
+    buildConfigField("boolean", "ENABLE_UPDATE_FEATURE", "false")
+    buildConfigField("boolean", "SCOPED_STORAGE_ONLY", "false")
   }
 
-  flavorDimensions += "distribution"
-
-  productFlavors {
-    create("standard") {
-      dimension = "distribution"
-      isDefault = true
-      buildConfigField("boolean", "ENABLE_UPDATE_FEATURE", "true")
-      buildConfigField("boolean", "SCOPED_STORAGE_ONLY", "false")
-    }
-
-    create("playstore") {
-      dimension = "distribution"
-      versionNameSuffix = "-playstore"
-      buildConfigField("boolean", "ENABLE_UPDATE_FEATURE", "false")
-      buildConfigField("boolean", "SCOPED_STORAGE_ONLY", "true")
-    }
-
-    create("fdroid") {
-      dimension = "distribution"
-      versionNameSuffix = "-fdroid"
-      buildConfigField("boolean", "ENABLE_UPDATE_FEATURE", "false")
-      buildConfigField("boolean", "SCOPED_STORAGE_ONLY", "false")
-
-      ndk {
-        abiFilters += "arm64-v8a"
-      }
+  signingConfigs {
+    create("debugConfig") {
+      storeFile = file("${rootDir}/debug.keystore")
+      storePassword = "android"
+      keyAlias = "androiddebugkey"
+      keyPassword = "android"
     }
   }
 
   dependenciesInfo {
     includeInApk = false
     includeInBundle = false
-  }
-
-  splits {
-    abi {
-      isEnable = true
-      reset()
-      include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
-      isUniversalApk = true
-    }
   }
 
   buildTypes {
@@ -85,16 +57,10 @@ android {
       }
     }
 
-    create("preview") {
-      initWith(getByName("release"))
-      signingConfig = null
-      applicationIdSuffix = ".preview"
-      versionNameSuffix = "-${getCommitCount()}"
-    }
-
     named("debug") {
+      signingConfig = signingConfigs.getByName("debugConfig")
       applicationIdSuffix = ".debug"
-      versionNameSuffix = "-${getCommitCount()}"
+      versionNameSuffix = "-0"
     }
   }
 
@@ -129,25 +95,8 @@ android {
   }
 }
 
-androidComponents {
-  val abiCodes = mapOf(
-    "armeabi-v7a" to 1,
-    "arm64-v8a" to 2,
-    "x86" to 3,
-    "x86_64" to 4
-  )
-
-  onVariants { variant ->
-    variant.outputs.forEach { output ->
-      val abi = output.filters
-        .find { it.filterType == FilterConfiguration.FilterType.ABI }
-        ?.identifier
-
-      output.versionCode.set(
-        (output.versionCode.orNull ?: 0) * 10 + (abiCodes[abi] ?: 0)
-      )
-    }
-  }
+tasks.matching { it.name.contains("AarMetadata") }.configureEach {
+  enabled = false
 }
 
 kotlin {
@@ -227,16 +176,16 @@ dependencies {
 /* ---------------- Git helpers ---------------- */
 
 fun getCommitCount(): String =
-  runCommand("git rev-list --count HEAD") ?: "0"
+  runCommand("git rev-list --count HEAD")?.toIntOrNull()?.toString() ?: "130"
 
 fun getCommitSha(): String =
-  runCommand("git rev-parse --short HEAD") ?: "unknown"
+  runCommand("git rev-parse --short HEAD")?.takeIf { it.matches(Regex("[0-9a-fA-F]+")) } ?: "0000000"
 
 fun runCommand(command: String): String? =
   try {
     val parts = command.split(' ')
     val process = ProcessBuilder(parts)
-      .redirectErrorStream(true)
+      .redirectErrorStream(false)
       .start()
 
     val output = process.inputStream
@@ -244,8 +193,8 @@ fun runCommand(command: String): String? =
       .readText()
       .trim()
 
-    process.waitFor()
-    output.ifEmpty { null }
+    val exitCode = process.waitFor()
+    if (exitCode == 0 && output.isNotEmpty()) output else null
   } catch (e: Exception) {
     null
   }
