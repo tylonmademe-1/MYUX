@@ -1,7 +1,9 @@
 package app.marlboroadvance.mpvex.ui.browser.cards
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PlayArrow
@@ -31,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
@@ -54,6 +58,10 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.withContext
 import org.koin.compose.koinInject
 import kotlin.math.roundToInt
+import app.marlboroadvance.mpvex.ui.theme.VelocityTheme
+import app.marlboroadvance.mpvex.ui.theme.tactilePress
+import app.marlboroadvance.mpvex.ui.theme.LiquidGlassBadge
+import app.marlboroadvance.mpvex.ui.theme.LiquidGlassMode
 
 @Composable
 fun VideoCard(
@@ -93,26 +101,30 @@ fun VideoCard(
 
   Card(
     modifier = modifier
-      .then(
-        if (isGridMode) Modifier.fillMaxWidth() else Modifier.fillMaxWidth()
-      )
+      .fillMaxWidth()
+      .tactilePress(scaleDown = 0.98f)
       .combinedClickable(
         onClick = onClick,
         onLongClick = onLongClick,
       ),
-    colors = CardDefaults. cardColors(containerColor = Color. Transparent),
+    shape = if (isGridMode) RoundedCornerShape(20.dp) else RoundedCornerShape(26.dp),
+    border = BorderStroke(
+      1.dp,
+      if (isSelected) MaterialTheme.colorScheme.primary else VelocityTheme.CardBorder
+    ),
+    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
   ) {
     if (isGridMode) {
       // GRID LAYOUT - Vertical arrangement
       Column(
         modifier = Modifier
-          . fillMaxWidth()
-          .background(
+          .fillMaxWidth()
+          .then(
             if (isSelected) {
-              MaterialTheme.colorScheme.tertiary. copy(alpha = 0.3f)
+              Modifier.background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f))
             } else {
-              Color. Transparent
-            },
+              Modifier.background(Brush.linearGradient(VelocityTheme.CardGlassGradient))
+            }
           )
           .padding(12.dp),
         horizontalAlignment = if (gridColumns == 1) Alignment.Start else Alignment.CenterHorizontally,
@@ -219,20 +231,13 @@ fun VideoCard(
 
 
           // Duration overlay
-          Box(
+          LiquidGlassBadge(
+            text = video.durationFormatted,
             modifier = Modifier
-              .align(Alignment. BottomEnd)
-              .padding(6.dp)
-              .clip(RoundedCornerShape(4.dp))
-              .background(Color.Black.copy(alpha = 0.65f))
-              .padding(horizontal = 6.dp, vertical = 2.dp),
-          ) {
-            Text(
-              text = video. durationFormatted,
-              style = MaterialTheme.typography.labelSmall,
-              color = Color.White,
-            )
-          }
+              .align(Alignment.BottomEnd)
+              .padding(6.dp),
+            mode = LiquidGlassMode.Clear,
+          )
 
           // Progress bar
           if (progressPercentage != null && showProgressBar) {
@@ -372,17 +377,16 @@ fun VideoCard(
       }
     } else {
       Row(
-        modifier =
-          Modifier
-            .fillMaxWidth()
-            .background(
-              if (isSelected) {
-                MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f)
-              } else {
-                Color.Transparent
-              },
-            )
-            .padding(12.dp),
+        modifier = Modifier
+          .fillMaxWidth()
+          .then(
+            if (isSelected) {
+              Modifier.background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f))
+            } else {
+              Modifier.background(Brush.linearGradient(VelocityTheme.CardGlassGradient))
+            }
+          )
+          .padding(14.dp),
         verticalAlignment = Alignment.CenterVertically,
       ) {
         val thumbnailRepository = koinInject<ThumbnailRepository>()
@@ -491,21 +495,13 @@ fun VideoCard(
 
 
           // Duration timestamp overlay at bottom-right of the thumbnail
-          Box(
-            modifier =
-              Modifier
-                .align(Alignment.BottomEnd)
-                .padding(6.dp)
-                .clip(RoundedCornerShape(4.dp))
-                .background(Color.Black.copy(alpha = 0.65f))
-                .padding(horizontal = 6.dp, vertical = 2.dp),
-          ) {
-            Text(
-              text = video.durationFormatted,
-              style = MaterialTheme.typography.labelSmall,
-              color = Color.White,
-            )
-          }
+          LiquidGlassBadge(
+            text = video.durationFormatted,
+            modifier = Modifier
+              .align(Alignment.BottomEnd)
+              .padding(6.dp),
+            mode = LiquidGlassMode.Clear,
+          )
 
           // Progress bar at bottom of thumbnail
           if (progressPercentage != null && showProgressBar) {

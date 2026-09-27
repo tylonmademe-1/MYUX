@@ -1,12 +1,18 @@
 package app.marlboroadvance.mpvex.ui.browser.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
@@ -16,6 +22,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DriveFileRenameOutline
+import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.RemoveCircle
@@ -31,11 +38,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,20 +56,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import app.marlboroadvance.mpvex.R
 import app.marlboroadvance.mpvex.preferences.AppearancePreferences
 import app.marlboroadvance.mpvex.preferences.preference.collectAsState
+import app.marlboroadvance.mpvex.ui.theme.VelocityTheme
 import app.marlboroadvance.mpvex.ui.theme.DarkMode
 import app.marlboroadvance.mpvex.ui.theme.LocalThemeTransitionState
+import app.marlboroadvance.mpvex.ui.theme.LiquidGlassIconButton
+import app.marlboroadvance.mpvex.ui.theme.LiquidGlassMode
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
@@ -128,6 +148,24 @@ fun BrowserTopBar(
   }
 }
 
+@Composable
+fun LiquidHeaderButton(
+  onClick: () -> Unit,
+  icon: @Composable () -> Unit,
+  contentDescription: String,
+  modifier: Modifier = Modifier,
+) {
+  LiquidGlassIconButton(
+    onClick = onClick,
+    icon = icon,
+    contentDescription = contentDescription,
+    size = 40.dp,
+    iconSize = 20.dp,
+    mode = LiquidGlassMode.Regular,
+    modifier = modifier,
+  )
+}
+
 /**
  * Normal mode top bar
  */
@@ -175,11 +213,7 @@ private fun NormalTopBar(
 
   TopAppBar(
     colors = TopAppBarDefaults.topAppBarColors(
-      containerColor = if (MaterialTheme.colorScheme.background == Color.Black) {
-        Color.Black
-      } else {
-        MaterialTheme.colorScheme.surfaceContainer
-      },
+      containerColor = Color.Transparent,
     ),
     title = {
       val titleModifier = Modifier
@@ -209,86 +243,97 @@ private fun NormalTopBar(
           )
         }
 
-      Text(
-        title,
-        style =
-          if (onBackClick == null) {
-            MaterialTheme.typography.headlineMediumEmphasized
-          } else {
-            MaterialTheme.typography.headlineSmall
-          },
-        fontWeight = FontWeight.ExtraBold,
-        color = MaterialTheme.colorScheme.primary,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        modifier =
-          titleModifier.then(
-            if (onBackClick == null) {
-              Modifier.padding(start = 8.dp)
-            } else {
-              Modifier
-            },
+      if (onBackClick == null) {
+        Text(
+          title,
+          style = TextStyle(
+            brush = Brush.verticalGradient(VelocityTheme.TitleGradient),
+            fontSize = 32.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = (-0.5).sp,
           ),
-      )
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
+          modifier = titleModifier.padding(start = 6.dp),
+        )
+      } else {
+        Text(
+          title,
+          style = MaterialTheme.typography.titleLarge.copy(
+            fontWeight = FontWeight.Bold,
+          ),
+          color = Color.White,
+          maxLines = 1,
+          overflow = TextOverflow.Ellipsis,
+          modifier = titleModifier,
+        )
+      }
     },
     navigationIcon = {
       if (onBackClick != null) {
-        IconButton(
+        LiquidHeaderButton(
           onClick = onBackClick,
-          modifier = Modifier.padding(horizontal = 2.dp),
-        ) {
-          Icon(
-            Icons.AutoMirrored.Filled.ArrowBack,
-            contentDescription = stringResource(R.string.back),
-            modifier = Modifier.size(24.dp),
-            tint = MaterialTheme.colorScheme.secondary,
-          )
-        }
+          icon = {
+            Icon(
+              Icons.AutoMirrored.Filled.ArrowBack,
+              contentDescription = stringResource(R.string.back),
+              modifier = Modifier.size(20.dp),
+            )
+          },
+          contentDescription = stringResource(R.string.back),
+          modifier = Modifier.padding(start = 12.dp, end = 4.dp),
+        )
       }
     },
     actions = {
-      additionalActions()
-      if (onSearchClick != null) {
-        IconButton(
-          onClick = onSearchClick,
-          modifier = Modifier.padding(horizontal = 2.dp),
-        ) {
-          Icon(
-            Icons.Filled.Search,
+      Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+        modifier = Modifier.padding(end = 12.dp)
+      ) {
+        additionalActions()
+        if (onSearchClick != null) {
+          LiquidHeaderButton(
+            onClick = onSearchClick,
+            icon = {
+              Icon(
+                Icons.Filled.Search,
+                contentDescription = "Search",
+                modifier = Modifier.size(20.dp),
+              )
+            },
             contentDescription = "Search",
-            modifier = Modifier.size(24.dp),
-            tint = MaterialTheme.colorScheme.secondary,
           )
         }
-      }
-      if (onSortClick != null) {
-        IconButton(
-          onClick = onSortClick,
-          modifier = Modifier.padding(horizontal = 2.dp),
-        ) {
-          Icon(
-            Icons.Default.ViewComfy,
+        if (onSortClick != null) {
+          LiquidHeaderButton(
+            onClick = onSortClick,
+            icon = {
+              Icon(
+                Icons.Filled.GridView,
+                contentDescription = stringResource(R.string.sort),
+                modifier = Modifier.size(20.dp),
+              )
+            },
             contentDescription = stringResource(R.string.sort),
-            modifier = Modifier.size(24.dp),
-            tint = MaterialTheme.colorScheme.secondary,
           )
         }
-      }
-      if (onSettingsClick != null) {
-        IconButton(
-          onClick = onSettingsClick,
-          modifier = Modifier.padding(horizontal = 2.dp),
-        ) {
-          Icon(
-            Icons.Filled.Settings,
+        if (onSettingsClick != null) {
+          LiquidHeaderButton(
+            onClick = onSettingsClick,
+            icon = {
+              Icon(
+                Icons.Filled.Settings,
+                contentDescription = "Settings",
+                modifier = Modifier.size(20.dp),
+              )
+            },
             contentDescription = "Settings",
-            modifier = Modifier.size(24.dp),
-            tint = MaterialTheme.colorScheme.secondary,
           )
         }
       }
     },
-    modifier = modifier.clip(RoundedCornerShape(bottomStart = 16.dp, bottomEnd = 16.dp)),
+    modifier = modifier,
   )
 }
 
@@ -379,132 +424,153 @@ private fun SelectionTopBar(
       }
     },
     navigationIcon = {
-      IconButton(
+      LiquidGlassIconButton(
         onClick = onCancel,
-        modifier = Modifier.padding(horizontal = 2.dp),
-      ) {
-        Icon(
-          Icons.Filled.Close,
-          contentDescription = stringResource(R.string.generic_cancel),
-          modifier = Modifier.size(28.dp),
-          tint = MaterialTheme.colorScheme.secondary,
-        )
-      }
+        icon = {
+          Icon(
+            Icons.Filled.Close,
+            contentDescription = stringResource(R.string.generic_cancel),
+            modifier = Modifier.size(20.dp),
+          )
+        },
+        contentDescription = stringResource(R.string.generic_cancel),
+        size = 38.dp,
+        iconSize = 20.dp,
+        mode = LiquidGlassMode.Regular,
+        modifier = Modifier.padding(start = 8.dp, end = 4.dp),
+      )
     },
     actions = {
-      // Play icon
-      if (onPlay != null) {
-        IconButton(
-          onClick = onPlay,
-          modifier = Modifier.padding(horizontal = 2.dp),
-        ) {
-          Icon(
-            Icons.Filled.PlayArrow,
+      Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp),
+        modifier = Modifier.padding(end = 8.dp),
+      ) {
+        // Play icon
+        if (onPlay != null) {
+          LiquidGlassIconButton(
+            onClick = onPlay,
+            icon = {
+              Icon(
+                Icons.Filled.PlayArrow,
+                contentDescription = "Play",
+                modifier = Modifier.size(20.dp),
+              )
+            },
             contentDescription = "Play",
-            modifier = Modifier.size(28.dp),
-            tint = MaterialTheme.colorScheme.primary,
+            size = 38.dp,
+            iconSize = 20.dp,
+            mode = LiquidGlassMode.Accent,
           )
         }
-      }
 
-      // Add to Playlist icon (for Play Store builds)
-      if (onAddToPlaylist != null) {
-        IconButton(
-          onClick = onAddToPlaylist,
-          modifier = Modifier.padding(horizontal = 2.dp),
-        ) {
-          Icon(
-            Icons.AutoMirrored.Filled.PlaylistAdd,
+        // Add to Playlist icon (for Play Store builds)
+        if (onAddToPlaylist != null) {
+          LiquidGlassIconButton(
+            onClick = onAddToPlaylist,
+            icon = {
+              Icon(
+                Icons.AutoMirrored.Filled.PlaylistAdd,
+                contentDescription = "Add to Playlist",
+                modifier = Modifier.size(20.dp),
+              )
+            },
             contentDescription = "Add to Playlist",
-            modifier = Modifier.size(28.dp),
-            tint = MaterialTheme.colorScheme.secondary,
+            size = 38.dp,
+            iconSize = 20.dp,
+            mode = LiquidGlassMode.Regular,
           )
         }
-      }
 
-      // Rename icon
-      if (onRename != null) {
-        IconButton(
-          onClick = onRename,
-          enabled = isSingleSelection,
-          modifier = Modifier.padding(horizontal = 2.dp),
-        ) {
-          Icon(
-            Icons.Filled.DriveFileRenameOutline,
+        // Rename icon
+        if (onRename != null) {
+          LiquidGlassIconButton(
+            onClick = onRename,
+            enabled = isSingleSelection,
+            icon = {
+              Icon(
+                Icons.Filled.DriveFileRenameOutline,
+                contentDescription = stringResource(R.string.rename),
+                modifier = Modifier.size(20.dp),
+              )
+            },
             contentDescription = stringResource(R.string.rename),
-            modifier = Modifier.size(24.dp),
-            tint =
-              if (isSingleSelection) {
-                MaterialTheme.colorScheme.secondary
-              } else {
-                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-              },
+            size = 38.dp,
+            iconSize = 20.dp,
+            mode = LiquidGlassMode.Regular,
           )
         }
-      }
 
-      // Info icon
-      if (onInfo != null) {
-        IconButton(
-          onClick = onInfo,
-          enabled = isSingleSelection,
-          modifier = Modifier.padding(horizontal = 2.dp),
-        ) {
-          Icon(
-            Icons.Filled.Info,
+        // Info icon
+        if (onInfo != null) {
+          LiquidGlassIconButton(
+            onClick = onInfo,
+            enabled = isSingleSelection,
+            icon = {
+              Icon(
+                Icons.Filled.Info,
+                contentDescription = stringResource(R.string.info),
+                modifier = Modifier.size(20.dp),
+              )
+            },
             contentDescription = stringResource(R.string.info),
-            modifier = Modifier.size(24.dp),
-            tint =
-              if (isSingleSelection) {
-                MaterialTheme.colorScheme.secondary
-              } else {
-                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-              },
+            size = 38.dp,
+            iconSize = 20.dp,
+            mode = LiquidGlassMode.Regular,
           )
         }
-      }
 
-      // Share icon
-      if (onShare != null) {
-        IconButton(
-          onClick = onShare,
-          modifier = Modifier.padding(horizontal = 2.dp),
-        ) {
-          Icon(
-            Icons.Filled.Share,
+        // Share icon
+        if (onShare != null) {
+          LiquidGlassIconButton(
+            onClick = onShare,
+            icon = {
+              Icon(
+                Icons.Filled.Share,
+                contentDescription = stringResource(R.string.generic_share),
+                modifier = Modifier.size(20.dp),
+              )
+            },
             contentDescription = stringResource(R.string.generic_share),
-            modifier = Modifier.size(24.dp),
-            tint = MaterialTheme.colorScheme.secondary,
+            size = 38.dp,
+            iconSize = 20.dp,
+            mode = LiquidGlassMode.Regular,
           )
         }
-      }
 
-      // Blacklist icon
-      if (onBlacklist != null) {
-        IconButton(
-          onClick = onBlacklist,
-          modifier = Modifier.padding(horizontal = 2.dp),
-        ) {
-          Icon(
-            Icons.Filled.Block,
+        // Blacklist icon
+        if (onBlacklist != null) {
+          LiquidGlassIconButton(
+            onClick = onBlacklist,
+            icon = {
+              Icon(
+                Icons.Filled.Block,
+                contentDescription = stringResource(R.string.pref_folders_blacklist),
+                modifier = Modifier.size(20.dp),
+              )
+            },
             contentDescription = stringResource(R.string.pref_folders_blacklist),
-            modifier = Modifier.size(24.dp),
-            tint = MaterialTheme.colorScheme.secondary,
+            size = 38.dp,
+            iconSize = 20.dp,
+            mode = LiquidGlassMode.Regular,
           )
         }
-      }
 
-      // Delete/Remove icon
-      if (onDelete != null) {
-        IconButton(
-          onClick = onDelete,
-          modifier = Modifier.padding(horizontal = 2.dp),
-        ) {
-          Icon(
-            imageVector = if (useRemoveIcon) Icons.Filled.RemoveCircle else Icons.Filled.Delete,
+        // Delete/Remove icon
+        if (onDelete != null) {
+          LiquidGlassIconButton(
+            onClick = onDelete,
+            icon = {
+              Icon(
+                imageVector = if (useRemoveIcon) Icons.Filled.RemoveCircle else Icons.Filled.Delete,
+                contentDescription = stringResource(R.string.delete),
+                modifier = Modifier.size(20.dp),
+              )
+            },
             contentDescription = stringResource(R.string.delete),
-            modifier = Modifier.size(24.dp),
-            tint = MaterialTheme.colorScheme.error,
+            size = 38.dp,
+            iconSize = 20.dp,
+            mode = LiquidGlassMode.Error,
           )
         }
       }

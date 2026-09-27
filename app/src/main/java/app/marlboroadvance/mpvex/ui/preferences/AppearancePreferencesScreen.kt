@@ -141,6 +141,31 @@ object AppearancePreferencesScreen : Screen {
                     }
 
                     item {
+                        PreferenceSectionHeader(title = stringResource(id = R.string.pref_appearance_category_display))
+                    }
+
+                    item {
+                        PreferenceCard {
+                            val force120Hz by preferences.force120Hz.collectAsState()
+                            SwitchPreference(
+                                value = force120Hz,
+                                onValueChange = { preferences.force120Hz.set(it) },
+                                title = {
+                                    Text(
+                                        text = stringResource(id = R.string.pref_appearance_120hz_title),
+                                    )
+                                },
+                                summary = {
+                                    Text(
+                                        text = stringResource(id = R.string.pref_appearance_120hz_summary),
+                                        color = MaterialTheme.colorScheme.outline,
+                                    )
+                                }
+                            )
+                        }
+                    }
+
+                    item {
                         PreferenceSectionHeader(title = stringResource(id = R.string.pref_appearance_category_file_browser))
                     }
 

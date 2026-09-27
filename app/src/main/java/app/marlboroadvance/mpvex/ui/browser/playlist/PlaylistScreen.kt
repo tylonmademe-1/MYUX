@@ -37,6 +37,9 @@ import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.ui.graphics.Color
+import app.marlboroadvance.mpvex.ui.browser.components.LiquidHeaderButton
+import app.marlboroadvance.mpvex.ui.theme.velocityAmbientBackground
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
@@ -173,6 +176,10 @@ object PlaylistScreen : Screen {
     )
 
     Scaffold(
+        modifier = Modifier
+          .fillMaxSize()
+          .velocityAmbientBackground(),
+        containerColor = Color.Transparent,
         topBar = {
           if (isSearching) {
             // Search mode - show search bar
@@ -227,6 +234,19 @@ object PlaylistScreen : Screen {
               onCancelSelection = { selectionManager.clear() },
               isSingleSelection = selectionManager.isSingleSelection,
               onSearchClick = { isSearching = true },
+              additionalActions = {
+                LiquidHeaderButton(
+                  onClick = { showPlaylistActionSheet = true },
+                  icon = {
+                    Icon(
+                      imageVector = Icons.Filled.Add,
+                      contentDescription = "Create Playlist",
+                      modifier = Modifier.size(20.dp),
+                    )
+                  },
+                  contentDescription = "Create Playlist",
+                )
+              },
               onSettingsClick = {
                 backStack.add(app.marlboroadvance.mpvex.ui.preferences.PreferencesScreen)
               },
@@ -240,17 +260,7 @@ object PlaylistScreen : Screen {
             )
           }
         },
-        floatingActionButton = {
-          val navigationBarHeight = app.marlboroadvance.mpvex.ui.browser.LocalNavigationBarHeight.current
-          if (!selectionManager.isInSelectionMode && isFabVisible.value) {
-            ExtendedFloatingActionButton(
-              onClick = { showPlaylistActionSheet = true },
-              icon = { Icon(Icons.Filled.Add, contentDescription = null) },
-              text = { Text("Create Playlist") },
-              modifier = Modifier.padding(bottom = navigationBarHeight)
-            )
-          }
-        }
+        floatingActionButton = { },
       ) { paddingValues ->
         if (isSearching && filteredPlaylists.isEmpty() && searchQuery.isNotBlank()) {
           // Show "no results" for search

@@ -16,6 +16,12 @@ okhttp = "5.3.2"
 sardineAndroid = "0.8"
 reorderable = "3.0.0"
 aboutLibraries = "15.1.1"
+mpv-android = "1.0.0"
+coreKtx = "1.15.0"
+material = "1.13.0"
+junit = "4.13.2"
+androidx-junit = "1.2.1"
+espresso-core = "3.6.1"
 
 [libraries]
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
@@ -33,6 +39,11 @@ androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-toolin
 androidx-material3-android = { group = "androidx.compose.material3", name = "material3", version = "1.5.0-alpha15" }
 androidx-compose-material = { group = "androidx.compose.material", name = "material" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version = "1.7.1" }
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidx-junit" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espresso-core" }
 androidx-material3-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version = "1.7.8" }
 androidx-compose-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout-compose", version = "1.1.1" }
 androidx-compose-animation-graphics = { group = "androidx.compose.animation", name = "animation-graphics-android" }
@@ -42,7 +53,7 @@ androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", vers
 androidx-documentfile = { group = "androidx.documentfile", name = "documentfile", version = "1.1.0" }
 seeker = "com.github.abdallahmehiz:seeker:2.0.1"
 mediainfo-lib = "com.github.marlboro-advance:mediainfoAndroid:v1.0.0-fix"
-mpv-android-lib = "io.github.abdallahmehiz:mpv-android-lib:0.1.12"
+mpv-android = { module = "io.github.marlboro-advance:mpv-android", version.ref = "mpv-android" }
 
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin" }
 koin-core = { module = "io.insert-koin:koin-core" }

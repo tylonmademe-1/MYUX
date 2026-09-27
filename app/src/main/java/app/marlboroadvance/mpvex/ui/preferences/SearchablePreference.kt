@@ -40,6 +40,13 @@ object SearchablePreferences {
                 screen = AppearancePreferencesScreen,
             ))
             add(SearchablePreference(
+                titleRes = R.string.pref_appearance_120hz_title,
+                summaryRes = R.string.pref_appearance_120hz_summary,
+                keywords = listOf("120", "120hz", "refresh rate", "smooth", "smoothness", "fps", "lag", "glitch", "display", "hz"),
+                category = "Appearance",
+                screen = AppearancePreferencesScreen,
+            ))
+            add(SearchablePreference(
                 titleRes = R.string.pref_appearance_unlimited_name_lines_title,
                 summaryRes = R.string.pref_appearance_unlimited_name_lines_summary,
                 keywords = listOf("name", "full", "truncate", "lines", "display"),

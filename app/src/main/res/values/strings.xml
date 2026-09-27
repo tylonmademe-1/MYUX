@@ -1,5 +1,5 @@
 <resources>
-  <string name="app_name" translatable="false">mpvEx</string>
+  <string name="app_name" translatable="false">Velocity</string>
   <string name="generic_reset">Reset</string>
   <string name="generic_share">Share</string>
   <string name="generic_confirm">Confirm</string>
@@ -19,6 +19,9 @@
   <string name="pref_appearance_material_you_title">Material You</string>
   <string name="pref_appearance_material_you_summary">Enable dynamic colors</string>
   <string name="pref_appearance_material_you_summary_disabled">Only available on Android 12 and above</string>
+  <string name="pref_appearance_category_display">Display &amp; Smoothness</string>
+  <string name="pref_appearance_120hz_title">120 Hz Ultra Smooth UI</string>
+  <string name="pref_appearance_120hz_summary">Force 120 Hz display refresh rate across the whole UI for zero lag, fluid 120 FPS scrolling, and instantaneous touch responses</string>
   <string name="pref_appearance_unlimited_name_lines_title">Show full names</string>
   <string name="pref_appearance_unlimited_name_lines_summary">Show full folder and video names without truncation</string>
   <string name="pref_appearance_hide_player_buttons_background_title">Hide player buttons background</string>

@@ -311,43 +311,7 @@ data class VideoListScreen(
           } else null,
         )
       },
-      floatingActionButton = {
-        val navigationBarHeight = app.marlboroadvance.mpvex.ui.browser.LocalNavigationBarHeight.current
-        if (sortedVideosWithInfo.isNotEmpty()) {
-          TooltipBox(
-            positionProvider = TooltipDefaults.rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
-            tooltip = { PlainTooltip { Text("Play recently played or first video") } },
-            state = rememberTooltipState(),
-          ) {
-            FloatingActionButton(
-              modifier = Modifier
-                .windowInsetsPadding(WindowInsets.systemBars)
-                .padding(bottom = navigationBarHeight)
-                .animateFloatingActionButton(
-                  visible = !selectionManager.isInSelectionMode && isFabVisible.value,
-                  alignment = Alignment.BottomEnd,
-                ),
-              onClick = {
-                coroutineScope.launch {
-                  val folderPath = sortedVideosWithInfo.firstOrNull()?.video?.path?.let { File(it).parent } ?: ""
-                  val recentlyPlayedVideos = RecentlyPlayedOps.getRecentlyPlayed(limit = 100)
-                  val lastPlayedInFolder = recentlyPlayedVideos.firstOrNull {
-                    File(it.filePath).parent == folderPath
-                  }
-
-                  if (lastPlayedInFolder != null) {
-                    MediaUtils.playFile(lastPlayedInFolder.filePath, context, "recently_played_button")
-                  } else {
-                    MediaUtils.playFile(sortedVideosWithInfo.first().video, context, "first_video_button")
-                  }
-                }
-              },
-            ) {
-              Icon(Icons.Filled.PlayArrow, contentDescription = "Play recently played or first video")
-            }
-          }
-        }
-      }
+      floatingActionButton = { },
     ) { padding ->
       val autoScrollToLastPlayed by browserPreferences.autoScrollToLastPlayed.collectAsState()
       

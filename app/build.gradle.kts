@@ -24,6 +24,8 @@ android {
       useSupportLibrary = true
     }
 
+    testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
     buildConfigField("String", "GIT_SHA", "\"${getCommitSha()}\"")
     buildConfigField("int", "GIT_COUNT", getCommitCount())
     buildConfigField("boolean", "ENABLE_UPDATE_FEATURE", "false")
@@ -45,7 +47,7 @@ android {
   }
 
   buildTypes {
-    named("release") {
+    release {
       isMinifyEnabled = true
       isShrinkResources = true
       proguardFiles(
@@ -57,8 +59,10 @@ android {
       }
     }
 
-    named("debug") {
-      signingConfig = signingConfigs.getByName("debugConfig")
+    debug {
+      if (file("${rootDir}/debug.keystore").exists()) {
+        signingConfig = signingConfigs.getByName("debugConfig")
+      }
       applicationIdSuffix = ".debug"
       versionNameSuffix = "-0"
     }
@@ -95,7 +99,7 @@ android {
   }
 }
 
-tasks.matching { it.name.contains("AarMetadata") }.configureEach {
+tasks.matching { it.name.contains("AarMetadata") || it.name.contains("stripDebugDebugSymbols") }.configureEach {
   enabled = false
 }
 
@@ -125,7 +129,8 @@ dependencies {
   implementation(libs.androidx.ui)
   implementation(libs.androidx.ui.graphics)
   implementation(libs.androidx.material3.android)
-  implementation("com.google.android.material:material:1.13.0")
+  implementation(libs.material)
+  implementation(libs.androidx.core.ktx)
   implementation(libs.androidx.compose.material)
   implementation(libs.androidx.ui.tooling.preview)
   debugImplementation(libs.androidx.ui.tooling)
@@ -160,7 +165,7 @@ dependencies {
   implementation(libs.truetype.parser)
   implementation(libs.fsaf)
   implementation(libs.mediainfo.lib)
-  implementation(files("libs/mpv-android-lib-v0.0.1.aar"))
+  implementation(libs.mpv.android)
 
   // Network protocol libraries
   implementation(libs.smbj)
@@ -171,6 +176,10 @@ dependencies {
   implementation(libs.nanohttpd)
   implementation(libs.lazycolumnscrollbar)
   implementation(libs.reorderable)
+
+  testImplementation(libs.junit)
+  androidTestImplementation(libs.androidx.junit)
+  androidTestImplementation(libs.androidx.espresso.core)
 }
 
 /* ---------------- Git helpers ---------------- */

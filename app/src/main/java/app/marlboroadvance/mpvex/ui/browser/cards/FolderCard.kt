@@ -1,16 +1,20 @@
 package app.marlboroadvance.mpvex.ui.browser.cards
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Folder
@@ -24,10 +28,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import app.marlboroadvance.mpvex.domain.media.model.VideoFolder
 import app.marlboroadvance.mpvex.preferences.AppearancePreferences
 import app.marlboroadvance.mpvex.preferences.BrowserPreferences
@@ -38,6 +44,10 @@ import org.koin.compose.koinInject
 import kotlin.math.pow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalConfiguration
+import app.marlboroadvance.mpvex.ui.theme.VelocityTheme
+import app.marlboroadvance.mpvex.ui.theme.tactilePress
+import app.marlboroadvance.mpvex.ui.theme.LiquidGlassBadge
+import app.marlboroadvance.mpvex.ui.theme.LiquidGlassMode
 
 @Composable
 fun FolderCard(
@@ -70,11 +80,17 @@ fun FolderCard(
   Card(
     modifier = modifier
       .fillMaxWidth()
+      .tactilePress(scaleDown = 0.97f)
       .combinedClickable(
         onClick = onClick,
         onLongClick = onLongClick,
       ),
-    colors = CardDefaults. cardColors(containerColor = Color. Transparent),
+    shape = if (isGridMode) RoundedCornerShape(20.dp) else RoundedCornerShape(28.dp),
+    border = BorderStroke(
+      1.dp,
+      if (isSelected) MaterialTheme.colorScheme.primary else VelocityTheme.CardBorder
+    ),
+    colors = CardDefaults.cardColors(containerColor = Color.Transparent),
   ) {
     if (isGridMode) {
       // GRID LAYOUT - Vertical arrangement
@@ -149,20 +165,13 @@ fun FolderCard(
           }
           
           if (showTotalDurationChip && folder.totalDuration > 0) {
-            Box(
+            LiquidGlassBadge(
+              text = formatDuration(folder.totalDuration),
               modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(6.dp)
-                .clip(RoundedCornerShape(4.dp))
-                .background(Color.Black.copy(alpha = 0.65f))
-                .padding(horizontal = 6.dp, vertical = 2.dp),
-            ) {
-              Text(
-                text = formatDuration(folder.totalDuration),
-                style = MaterialTheme.typography.labelSmall,
-                color = Color.White,
-              )
-            }
+                .padding(6.dp),
+              mode = LiquidGlassMode.Clear,
+            )
           }
         }
 
@@ -187,47 +196,64 @@ fun FolderCard(
       }
     } else {
       Row(
-        modifier =
-          Modifier
-            .fillMaxWidth()
-            .background(
-              if (isSelected) MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f) else Color.Transparent,
-            )
-            .padding(12.dp),
+        modifier = Modifier
+          .fillMaxWidth()
+          .then(
+            if (isSelected) {
+              Modifier.background(MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f))
+            } else {
+              Modifier.background(Brush.linearGradient(VelocityTheme.CardGlassGradient))
+            }
+          )
+          .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
       ) {
+        // Folder Icon Box with Liquid Specular Sheen
         Box(
-          modifier =
-            Modifier
-              .size(64.dp)
-              .clip(RoundedCornerShape(12.dp))
-              .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-              .combinedClickable(
-                onClick = onThumbClick,
-                onLongClick = onLongClick,
-              ),
+          modifier = Modifier
+            .size(66.dp)
+            .clip(RoundedCornerShape(22.dp))
+            .background(Brush.linearGradient(VelocityTheme.IconBoxGradient))
+            .border(1.dp, VelocityTheme.IconBoxBorder, RoundedCornerShape(22.dp))
+            .combinedClickable(
+              onClick = onThumbClick,
+              onLongClick = onLongClick,
+            ),
           contentAlignment = Alignment.Center,
         ) {
+          // Top subtle diagonal sheen reflection
+          Box(
+            modifier = Modifier
+              .align(Alignment.TopStart)
+              .offset(x = (-4).dp, y = (-4).dp)
+              .size(28.dp)
+              .background(
+                Brush.radialGradient(
+                  listOf(Color(0x35FFFFFF), Color.Transparent)
+                ),
+                CircleShape
+              )
+          )
+
           Icon(
             customIcon ?: Icons.Filled.Folder,
             contentDescription = "Folder",
-            modifier = Modifier.size(48.dp),
-            tint = MaterialTheme.colorScheme.secondary,
+            modifier = Modifier.size(40.dp),
+            tint = VelocityTheme.FolderLavender,
           )
 
           // Show new video count badge if folder contains new videos
           if (newVideoCount > 0) {
             Box(
-              modifier =
-                Modifier
-                  .align(Alignment.TopEnd)
-                  .padding(4.dp)
-                  .clip(RoundedCornerShape(4.dp))
-                  .background(Color(0xFFD32F2F)) // Warning red color
-                  .padding(horizontal = 6.dp, vertical = 2.dp),
+              modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(4.dp)
+                .clip(RoundedCornerShape(6.dp))
+                .background(Color(0xFFE53935))
+                .padding(horizontal = 6.dp, vertical = 2.dp),
             ) {
               Text(
-              	text = newVideoCount.toString(),
+                text = newVideoCount.toString(),
                 style = MaterialTheme.typography.labelSmall.copy(
                   fontWeight = FontWeight.Bold,
                 ),
@@ -235,107 +261,123 @@ fun FolderCard(
               )
             }
           }
-
-
         }
+
         Spacer(modifier = Modifier.width(16.dp))
+
         Column(
           modifier = Modifier.weight(1f),
         ) {
           Text(
             folder.name,
-            style = MaterialTheme.typography.titleMedium,
-            color = if (isRecentlyPlayed) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurface,
+            style = MaterialTheme.typography.titleMedium.copy(
+              fontSize = 19.sp,
+              fontWeight = FontWeight.SemiBold,
+              letterSpacing = 0.2.sp,
+            ),
+            color = if (isRecentlyPlayed) MaterialTheme.colorScheme.tertiary else Color.White,
             maxLines = maxLines,
             overflow = TextOverflow.Ellipsis,
           )
+
           if (showFolderPath && parentPath.isNotEmpty()) {
             Text(
               parentPath,
-              style = MaterialTheme.typography.bodySmall,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-              maxLines = maxLines,
+              style = MaterialTheme.typography.bodySmall.copy(
+                fontSize = 13.5.sp,
+                fontWeight = FontWeight.Normal,
+              ),
+              color = Color(0xFF98A1B3),
+              maxLines = 1,
               overflow = TextOverflow.Ellipsis,
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(6.dp))
           } else {
-            Spacer(modifier = Modifier.height(4.dp))
-          }
-          FlowRow(
-            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(4.dp),
-            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(4.dp)
-          ) {
-            // Render custom chip content first if provided
-            var hasChip = false
-          if (customChipContent != null) {
-            customChipContent()
-            hasChip = true
+            Spacer(modifier = Modifier.height(6.dp))
           }
 
-          // Hide chips at storage root level (when videoCount is 0)
+          FlowRow(
+            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp),
+          ) {
+            if (customChipContent != null) {
+              customChipContent()
+            }
+
             if (showTotalVideosChip && folder.videoCount > 0) {
-              Text(
-                if (folder.videoCount == 1) "1 Video" else "${folder.videoCount} Videos",
-                style = MaterialTheme.typography.labelSmall,
-                modifier =
-                  Modifier
-                    .background(
-                      MaterialTheme.colorScheme.surfaceContainerHigh,
-                      RoundedCornerShape(8.dp),
-                    )
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                color = MaterialTheme.colorScheme.onSurface,
-              )
-              hasChip = true
+              Box(
+                modifier = Modifier
+                  .clip(CircleShape)
+                  .background(VelocityTheme.PillBackground)
+                  .border(1.dp, VelocityTheme.PillBorder, CircleShape)
+                  .padding(horizontal = 14.dp, vertical = 4.dp),
+              ) {
+                Text(
+                  text = if (folder.videoCount == 1) "1 Video" else "${folder.videoCount} Videos",
+                  style = MaterialTheme.typography.labelSmall.copy(
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                  ),
+                  color = VelocityTheme.PillText,
+                )
+              }
             }
 
             if (showTotalSizeChip && folder.totalSize > 0) {
-              Text(
-                formatFileSize(folder.totalSize),
-                style = MaterialTheme.typography.labelSmall,
-                modifier =
-                  Modifier
-                    .background(
-                      MaterialTheme.colorScheme.surfaceContainerHigh,
-                      RoundedCornerShape(8.dp),
-                    )
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                color = MaterialTheme.colorScheme.onSurface,
-              )
-              hasChip = true
+              Box(
+                modifier = Modifier
+                  .clip(CircleShape)
+                  .background(VelocityTheme.PillBackground)
+                  .border(1.dp, VelocityTheme.PillBorder, CircleShape)
+                  .padding(horizontal = 14.dp, vertical = 4.dp),
+              ) {
+                Text(
+                  text = formatFileSize(folder.totalSize),
+                  style = MaterialTheme.typography.labelSmall.copy(
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                  ),
+                  color = VelocityTheme.PillText,
+                )
+              }
             }
 
             if (showTotalDurationChip && folder.totalDuration > 0) {
-              Text(
-                formatDuration(folder.totalDuration),
-                style = MaterialTheme.typography.labelSmall,
-                modifier =
-                  Modifier
-                    .background(
-                      MaterialTheme.colorScheme.surfaceContainerHigh,
-                      RoundedCornerShape(8.dp),
-                    )
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                color = MaterialTheme.colorScheme.onSurface,
-              )
-              hasChip = true
+              Box(
+                modifier = Modifier
+                  .clip(CircleShape)
+                  .background(VelocityTheme.PillBackground)
+                  .border(1.dp, VelocityTheme.PillBorder, CircleShape)
+                  .padding(horizontal = 14.dp, vertical = 4.dp),
+              ) {
+                Text(
+                  text = formatDuration(folder.totalDuration),
+                  style = MaterialTheme.typography.labelSmall.copy(
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                  ),
+                  color = VelocityTheme.PillText,
+                )
+              }
             }
 
-
-
             if (showDateChip && folder.lastModified > 0) {
-              Text(
-                formatDate(folder.lastModified),
-                style = MaterialTheme.typography.labelSmall,
-                modifier =
-                  Modifier
-                    .background(
-                      MaterialTheme.colorScheme.surfaceContainerHigh,
-                      RoundedCornerShape(8.dp),
-                    )
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
-                color = MaterialTheme.colorScheme.onSurface,
-              )
+              Box(
+                modifier = Modifier
+                  .clip(CircleShape)
+                  .background(VelocityTheme.PillBackground)
+                  .border(1.dp, VelocityTheme.PillBorder, CircleShape)
+                  .padding(horizontal = 14.dp, vertical = 4.dp),
+              ) {
+                Text(
+                  text = formatDate(folder.lastModified),
+                  style = MaterialTheme.typography.labelSmall.copy(
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                  ),
+                  color = VelocityTheme.PillText,
+                )
+              }
             }
           }
         }

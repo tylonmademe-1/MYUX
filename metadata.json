@@ -1,6 +1,6 @@
 {
-  "name": "mpvEx",
-  "description": "An advanced video player for Android based on mpv",
+  "name": "Velocity",
+  "description": "Ultra-smooth high performance video player for Android",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

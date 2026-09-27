@@ -32,6 +32,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
+import androidx.compose.ui.graphics.Color
+import app.marlboroadvance.mpvex.ui.theme.velocityAmbientBackground
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleFloatingActionButton
 import androidx.compose.material3.ToggleFloatingActionButtonDefaults.animateIcon
@@ -185,6 +187,10 @@ object RecentlyPlayedScreen : Screen {
     )
 
     Scaffold(
+        modifier = Modifier
+          .fillMaxSize()
+          .velocityAmbientBackground(),
+        containerColor = Color.Transparent,
         topBar = {
           BrowserTopBar(
             title = "Recently Played",
@@ -207,80 +213,7 @@ object RecentlyPlayedScreen : Screen {
             onDeleteClick = { deleteDialogOpen.value = true },
           )
         },
-      floatingActionButton = {
-        FloatingActionButtonMenu(
-          modifier = Modifier
-            .padding( bottom = 88.dp),
-          expanded = isFabExpanded.value,
-          button = {
-            TooltipBox(
-              positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
-                if (isFabExpanded.value) {
-                  TooltipAnchorPosition.Start
-                } else {
-                  TooltipAnchorPosition.Above
-                }
-              ),
-              tooltip = { PlainTooltip { Text("Toggle menu") } },
-              state = rememberTooltipState(),
-            ) {
-              ToggleFloatingActionButton(
-                modifier = Modifier
-                  .animateFloatingActionButton(
-                    visible = !selectionManager.isInSelectionMode && isFabVisible.value,
-                    alignment = Alignment.BottomEnd,
-                  ),
-                checked = isFabExpanded.value,
-                onCheckedChange = { isFabExpanded.value = !isFabExpanded.value },
-              ) {
-                val imageVector by remember {
-                  derivedStateOf {
-                    if (checkedProgress > 0.5f) Icons.Filled.Close else Icons.Filled.PlayArrow
-                  }
-                }
-                Icon(
-                  painter = rememberVectorPainter(imageVector),
-                  contentDescription = null,
-                  modifier = Modifier.animateIcon({ checkedProgress }),
-                )
-              }
-            }
-          },
-        ) {
-          FloatingActionButtonMenuItem(
-            onClick = {
-              isFabExpanded.value = false
-              filePicker.launch(arrayOf("video/*"))
-            },
-            icon = { Icon(Icons.Filled.FileOpen, contentDescription = null) },
-            text = { Text(text = "Open File") },
-          )
-
-          FloatingActionButtonMenuItem(
-            onClick = {
-              isFabExpanded.value = false
-              coroutineScope.launch {
-                val recentlyPlayedVideos = app.marlboroadvance.mpvex.utils.history.RecentlyPlayedOps.getRecentlyPlayed(limit = 1)
-                val lastPlayed = recentlyPlayedVideos.firstOrNull()
-                if (lastPlayed != null) {
-                  MediaUtils.playFile(lastPlayed.filePath, context, "recently_played_button")
-                }
-              }
-            },
-            icon = { Icon(Icons.Filled.History, contentDescription = null) },
-            text = { Text(text = "Recently Played") },
-          )
-
-          FloatingActionButtonMenuItem(
-            onClick = {
-              isFabExpanded.value = false
-              showLinkDialog.value = true
-            },
-            icon = { Icon(Icons.Filled.Link, contentDescription = null) },
-            text = { Text(text = "Open Link") },
-          )
-        }
-      },
+      floatingActionButton = { },
     ) { padding ->
       when {
         !enableRecentlyPlayed -> {

@@ -39,10 +39,12 @@ import app.marlboroadvance.mpvex.database.entities.PlaybackStateEntity
 import app.marlboroadvance.mpvex.databinding.PlayerLayoutBinding
 import app.marlboroadvance.mpvex.domain.playbackstate.repository.PlaybackStateRepository
 import app.marlboroadvance.mpvex.preferences.AdvancedPreferences
+import app.marlboroadvance.mpvex.preferences.AppearancePreferences
 import app.marlboroadvance.mpvex.preferences.AudioPreferences
 import app.marlboroadvance.mpvex.preferences.BrowserPreferences
 import app.marlboroadvance.mpvex.preferences.PlayerPreferences
 import app.marlboroadvance.mpvex.preferences.SubtitlesPreferences
+import app.marlboroadvance.mpvex.utils.DisplayRefreshRateHelper
 import app.marlboroadvance.mpvex.ui.player.controls.PlayerControls
 import app.marlboroadvance.mpvex.ui.theme.MpvexTheme
 import app.marlboroadvance.mpvex.utils.history.RecentlyPlayedOps
@@ -137,6 +139,11 @@ class PlayerActivity :
    * Preferences for browser settings.
    */
   private val browserPreferences: BrowserPreferences by inject()
+
+  /**
+   * Preferences for appearance settings.
+   */
+  private val appearancePreferences: AppearancePreferences by inject()
 
   /**
    * Manager for file operations.
@@ -330,6 +337,9 @@ class PlayerActivity :
     enableEdgeToEdge()
     super.onCreate(savedInstanceState)
     setContentView(binding.root)
+
+    // Apply 120 Hz display refresh rate
+    DisplayRefreshRateHelper.applyRefreshRate(this, appearancePreferences.force120Hz.get())
 
     // OPTIMIZATION: Set volume control stream so hardware buttons control media volume
     volumeControlStream = AudioManager.STREAM_MUSIC
@@ -1055,6 +1065,7 @@ class PlayerActivity :
 
   override fun onResume() {
     super.onResume()
+    DisplayRefreshRateHelper.applyRefreshRate(this, appearancePreferences.force120Hz.get())
     updateVolume()
   }
 

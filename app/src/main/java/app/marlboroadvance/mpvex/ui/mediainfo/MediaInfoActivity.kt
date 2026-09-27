@@ -67,6 +67,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
+import app.marlboroadvance.mpvex.utils.DisplayRefreshRateHelper
 import java.io.File
 
 class MediaInfoActivity : ComponentActivity() {
@@ -75,6 +76,7 @@ class MediaInfoActivity : ComponentActivity() {
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
+    DisplayRefreshRateHelper.applyRefreshRate(this, appearancePreferences.force120Hz.get())
 
     setContent {
       val dark by appearancePreferences.darkMode.collectAsState()

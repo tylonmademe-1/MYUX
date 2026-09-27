@@ -4,12 +4,21 @@ import android.content.Context
 import android.content.Intent
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,8 +28,12 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.AccountTree
@@ -48,6 +61,9 @@ import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SearchBar
 import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.ripple
+import app.marlboroadvance.mpvex.ui.theme.VelocityTheme
+import app.marlboroadvance.mpvex.ui.theme.velocityAmbientBackground
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleFloatingActionButton
 import androidx.compose.material3.ToggleFloatingActionButtonDefaults.animateIcon
@@ -321,6 +337,10 @@ object FolderListScreen : Screen {
     )
 
     Scaffold(
+      modifier = Modifier
+        .fillMaxSize()
+        .velocityAmbientBackground(),
+      containerColor = Color.Transparent,
       topBar = {
         if (isSearching) {
           SearchBar(
@@ -435,78 +455,7 @@ object FolderListScreen : Screen {
           )
         }
       },
-      floatingActionButton = {
-        FloatingActionButtonMenu(
-          modifier = Modifier.padding(bottom = 88.dp),
-          expanded = isFabExpanded.value,
-          button = {
-            TooltipBox(
-              positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
-                if (isFabExpanded.value) {
-                  TooltipAnchorPosition.Start
-                } else {
-                  TooltipAnchorPosition.Above
-                }
-              ),
-              tooltip = { PlainTooltip { Text("Toggle menu") } },
-              state = rememberTooltipState(),
-            ) {
-              ToggleFloatingActionButton(
-                modifier = Modifier.animateFloatingActionButton(
-                  visible = !selectionManager.isInSelectionMode && isFabVisible.value && !app.marlboroadvance.mpvex.ui.browser.MainScreen.getPermissionDeniedState(),
-                  alignment = Alignment.BottomEnd,
-                ),
-                checked = isFabExpanded.value,
-                onCheckedChange = { isFabExpanded.value = !isFabExpanded.value },
-              ) {
-                val imageVector by remember {
-                  derivedStateOf {
-                    if (checkedProgress > 0.5f) Icons.Filled.Close else Icons.Filled.PlayArrow
-                  }
-                }
-                Icon(
-                  painter = rememberVectorPainter(imageVector),
-                  contentDescription = null,
-                  modifier = Modifier.animateIcon({ checkedProgress }),
-                )
-              }
-            }
-          },
-        ) {
-          FloatingActionButtonMenuItem(
-            onClick = {
-              isFabExpanded.value = false
-              filePicker.launch(arrayOf("video/*"))
-            },
-            icon = { Icon(Icons.Filled.FileOpen, contentDescription = null) },
-            text = { Text(text = "Open File") },
-          )
-
-          FloatingActionButtonMenuItem(
-            onClick = {
-              isFabExpanded.value = false
-              coroutineScope.launch {
-                val recentlyPlayedVideos = RecentlyPlayedOps.getRecentlyPlayed(limit = 1)
-                val lastPlayed = recentlyPlayedVideos.firstOrNull()
-                if (lastPlayed != null) {
-                  MediaUtils.playFile(lastPlayed.filePath, context, "recently_played_button")
-                }
-              }
-            },
-            icon = { Icon(Icons.Filled.History, contentDescription = null) },
-            text = { Text(text = "Recently Played") },
-          )
-
-          FloatingActionButtonMenuItem(
-            onClick = {
-              isFabExpanded.value = false
-              showLinkDialog.value = true
-            },
-            icon = { Icon(Icons.Filled.Link, contentDescription = null) },
-            text = { Text(text = "Open Link") },
-          )
-        }
-      },
+      floatingActionButton = { },
     ) { padding ->
       Box(modifier = Modifier.padding(padding)) {
         when (permissionState.status) {
@@ -747,12 +696,13 @@ private fun GridContent(
       state = gridState,
       modifier = Modifier.fillMaxSize(),
       contentPadding = PaddingValues(
-        start = 8.dp,
-        end = 8.dp,
-        bottom = navigationBarHeight
+        start = 16.dp,
+        end = 16.dp,
+        top = 10.dp,
+        bottom = navigationBarHeight + 16.dp
       ),
-      horizontalArrangement = Arrangement.spacedBy(4.dp),
-      verticalArrangement = Arrangement.spacedBy(4.dp),
+      horizontalArrangement = Arrangement.spacedBy(12.dp),
+      verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
       items(folders.size) { index ->
         val folder = folders[index]
@@ -819,10 +769,12 @@ private fun ListContent(
       state = listState,
       modifier = Modifier.fillMaxSize(),
       contentPadding = PaddingValues(
-        start = 8.dp,
-        end = 8.dp,
-        bottom = navigationBarHeight
+        start = 16.dp,
+        end = 16.dp,
+        top = 10.dp,
+        bottom = navigationBarHeight + 16.dp
       ),
+      verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
       items(folders) { folder ->
         val isRecentlyPlayed = recentlyPlayedFilePath?.let { filePath ->

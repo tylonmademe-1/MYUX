@@ -42,6 +42,7 @@ import app.marlboroadvance.mpvex.ui.browser.MainScreen
 import app.marlboroadvance.mpvex.ui.theme.DarkMode
 import app.marlboroadvance.mpvex.ui.theme.MpvexTheme
 import app.marlboroadvance.mpvex.ui.utils.LocalBackStack
+import app.marlboroadvance.mpvex.utils.DisplayRefreshRateHelper
 import app.marlboroadvance.mpvex.utils.permission.PermissionUtils
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -72,10 +73,19 @@ class MainActivity : ComponentActivity() {
     
     PermissionUtils.setMediaAccessLauncher(mediaAccessLauncher)
 
+    // Apply 120 Hz display refresh rate
+    DisplayRefreshRateHelper.applyRefreshRate(this, appearancePreferences.force120Hz.get())
+
     // Register proxy lifecycle observer for network streaming
     lifecycle.addObserver(app.marlboroadvance.mpvex.ui.browser.networkstreaming.proxy.ProxyLifecycleObserver())
 
     setContent {
+      // Apply 120 Hz refresh rate reactively
+      val force120Hz by appearancePreferences.force120Hz.collectAsState()
+      LaunchedEffect(force120Hz) {
+        DisplayRefreshRateHelper.applyRefreshRate(this@MainActivity, force120Hz)
+      }
+
       // Set up theme and edge-to-edge display
       val dark by appearancePreferences.darkMode.collectAsState()
       val isSystemInDarkTheme = isSystemInDarkTheme()
@@ -98,6 +108,11 @@ class MainActivity : ComponentActivity() {
         }
       }
     }
+  }
+
+  override fun onResume() {
+    super.onResume()
+    DisplayRefreshRateHelper.applyRefreshRate(this, appearancePreferences.force120Hz.get())
   }
 
   override fun onDestroy() {
